@@ -1,5 +1,6 @@
 import express from "express";
 import {Users} from "../database/utils/database.js";
+import {Cache} from "../database/utils/cache.js";
 import generateJwtToken from "../utils/generateJwtToken.js";
 import bcrypt from "bcrypt"
 
@@ -24,7 +25,7 @@ router.post("/", async (req, res) => {
             email: user.email
         }
 
-        bcrypt.compare(password, user.passwordHash, function(err, result) {
+        bcrypt.compare(password, user.passwordHash, async function(err, result) {
             if(err) {
                 res.status(500).json({
                     status: "error",
@@ -34,8 +35,8 @@ router.post("/", async (req, res) => {
             }
 
             if (result){
-                const {token, refreshToken} = generateJwtToken(payload, "all")                
-
+                const {token, refreshToken} = generateJwtToken(payload, "all")    
+                
                 res.status(200).json({
                     status: "success",
                     data: {

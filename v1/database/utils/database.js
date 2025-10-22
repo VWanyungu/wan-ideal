@@ -1,4 +1,4 @@
-import db from "../setup.js";
+import db from "../dbSetup.js";
 
 export class Users {
     static async getAllUsers({ page = 1, limit = 10 }) {
@@ -24,7 +24,7 @@ export class Users {
 
     static async getSingleUserByEmail(email) {
         const [user] = await db('users')
-            .select('email', 'password_hash')
+            .select('email', 'password_hash', 'id')
             .where("email", email )
         
         return {
@@ -56,22 +56,27 @@ export class Users {
 
     static async updateUserPassword(userObj) {
         try{
-            const user = await db('users')
-                .update({               
-                    password_hash: userObj.passwordHash,
-                })
-                .where("id", userObj.userId)
+            const affected = await db('users')
+                .where('id', userObj.userId)
+                .update({ password_hash: userObj.passwordHash });
 
-            return {
-                status: "success",
-                error: null
+            if (affected === 0) {
+                return { 
+                    status: "fail", 
+                    error: "User not found" 
+                };
             }
 
-        }catch (err){
-            return {
+            return { 
+                status: "success", 
+                error: null 
+            };
+            
+        }catch(err){
+            return { 
                 status: "fail",
-                error: err
-            }
+                error: err 
+            };
         }
     }
 }  
@@ -81,9 +86,50 @@ export class Tokens {
       const [refreshToken] = await db('refreshTokens')
             .select('refresh_token')
             .where("refresh_token", token )
-      return {
-         refreshToken: refreshToken ? refreshToken.refresh_token : null
-      }
+        return {
+            refreshToken: refreshToken ? refreshToken.refresh_token : null
+        }
     
+    }
+
+    static async deleteRefreshToken(token){
+        const [deletedToken] = await db('refreshTokens')
+            .where("refresh_token", token)
+            .del()
+            .returning('refresh_token')
+
+        return {
+            deletedToken: deletedToken ? deletedToken.refresh_token : null
+        }
+    
+    }
+
+    static async blacklistToken(token) {
+        const [blacklistedToken] = await db('tokens')
+            .insert({
+                token: token,
+            })
+            .returning(['token', 'blacklisted']);
+
+        return {
+            token: blacklistedToken.token,
+            blacklisted: blacklistedToken.blacklisted
+        };
+    }
+
+    static async checkBlacklistToken(token) {
+        const [user] = await db('users')
+            .insert({
+                first_name: userObj.firstName,
+                last_name: userObj.lastName,
+                email: userObj.email,
+                password_hash: userObj.passwordHash,
+                username: userObj.username,
+                is_verified: userObj.isVerified || 'false',
+                role: userObj.role || 'user'
+            })
+            .returning(['id', 'email', 'password_hash']);
+
+        return user ? true : false
     }
 }

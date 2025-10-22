@@ -1,11 +1,12 @@
 import express from "express";
 import {Users} from "../database/utils/database.js";
 import hashPassword from "../utils/hashPassword.js";
+import jwt from 'jsonwebtoken'
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
-    const resetToken = req.body.resetToken    
+router.post("/:resetToken", async (req, res) => {
+    const resetToken = req.params.resetToken    
 
     jwt.verify(resetToken, process.env.FORGOT_PASSWORD_TOKEN_SECRET, async (err, user) => {
         if (err) return res.status(401).json({
@@ -21,12 +22,12 @@ router.post("/", async (req, res) => {
             userId: user.userId
         }
 
-        const {error} = await Users.updateUserPassword(userObj)
+        const updateRes = await Users.updateUserPassword(userObj)
 
-        if (error) return res.status(500).json({
+        if (updateRes.error) return res.status(500).json({
             status: "fail",
             data: null,
-            message: error
+            message: updateRes.error
         })
 
         res.status(200).json({

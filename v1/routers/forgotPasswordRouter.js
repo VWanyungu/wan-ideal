@@ -1,6 +1,8 @@
 import express from "express";
 import {Users} from "../database/utils/database.js";
 import generateJwtToken from "../utils/generateJwtToken.js";
+import { sendPasswordResetMail } from "../utils/sendMail.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -19,17 +21,31 @@ router.post("/", async (req, res) => {
     }
 
     const payload = {
-        userId: user.userId,
+        id: user.userId,
         email: user.email
     }
 
-    const {forgotPasswordToken} = generateJwtToken(payload, "forgotPassword")  
+    const {forgotPasswordToken} = generateJwtToken(payload, "forgotPassword") 
 
-    // TO DO: Send email with signup link to user (with token as parameter)
+    const sendRes = await sendPasswordResetMail({
+        to: user.email,
+        subject: 'Calibre Software Solutions - Password Reset',
+        html: `<p><a href="${process.env.FRONTEND_URL}/reset-password/${forgotPasswordToken}">Click to reset yout password. This link is valid for 10 minutes</a></p>`
+    })
+
+    if (sendRes.status === "error") {
+        return res.status(500).json({
+            status: "error",
+            data: null,
+            message: sendRes.message
+        });
+    }
 
     res.status(200).json({
         status: "success",
-        data: null,
+        data: {
+            resetLink: `${process.env.BACKEND_URL}/reset-password/${forgotPasswordToken}`
+        },
         message: "Email sent"
     });
     

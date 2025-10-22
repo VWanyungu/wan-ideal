@@ -7,11 +7,11 @@ export default function generateJWTToken(user, type) {
         case "all":
             token = jwt.sign({ userId: user.userId, email: user.email }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15m'});
             refreshToken = jwt.sign({ userId: user.userId, email: user.email }, process.env.REFRESH_TOKEN_SECRET);
-            forgotPasswordToken = jwt.sign({ userId: user.userId, email: user.email }, process.env.FORGOT_PASSWORD_TOKEN_SECRET);
+            forgotPasswordToken = jwt.sign({ userId: user.userId, email: user.email }, process.env.FORGOT_PASSWORD_TOKEN_SECRET, {expiresIn: '15m'});
             return {token, refreshToken, forgotPasswordToken}
 
         case "forgotPassword":
-            forgotPasswordToken = jwt.sign({ userId: user.userId, email: user.email }, process.env.FORGOT_PASSWORD_TOKEN_SECRET, {expiresIn: '15m'});
+            forgotPasswordToken = jwt.sign({ userId: user.id, email: user.email }, process.env.FORGOT_PASSWORD_TOKEN_SECRET, {expiresIn: '15m'});
             return {forgotPasswordToken}
 
         case "refreshToken": 

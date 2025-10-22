@@ -1,6 +1,7 @@
 import express from 'express';
 import 'dotenv/config';
 import checkVersion from './midlewares/version.js';
+
 const app = express()
 
 app.use(express.json())
