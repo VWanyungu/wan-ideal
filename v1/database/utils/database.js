@@ -24,13 +24,14 @@ export class Users {
 
     static async getSingleUserByEmail(email) {
         const [user] = await db('users')
-            .select('email', 'password_hash', 'id')
+            .select('email', 'password_hash', 'id', 'role')
             .where("email", email )
         
         return {
             userId: user.id,
             email: user.email,
-            passwordHash: user.password_hash
+            passwordHash: user.password_hash,
+            role: user.role
         };
     }
 
@@ -82,10 +83,15 @@ export class Users {
 }  
 
 export class Tokens {
+    // Use try catch blocks for graceful error handling
+    
     static async getRefreshToken(token){
-      const [refreshToken] = await db('refreshTokens')
+        const [refreshToken] = await db('refreshTokens')
             .select('refresh_token')
             .where("refresh_token", token )
+
+        // COntrol for when the refresh token is not in the db
+
         return {
             refreshToken: refreshToken ? refreshToken.refresh_token : null
         }
@@ -118,18 +124,12 @@ export class Tokens {
     }
 
     static async checkBlacklistToken(token) {
-        const [user] = await db('users')
-            .insert({
-                first_name: userObj.firstName,
-                last_name: userObj.lastName,
-                email: userObj.email,
-                password_hash: userObj.passwordHash,
-                username: userObj.username,
-                is_verified: userObj.isVerified || 'false',
-                role: userObj.role || 'user'
-            })
-            .returning(['id', 'email', 'password_hash']);
+        const tokenBlacklisted = await db('tokens')
+            .select('blacklisted')
+            .where('token', token)
 
-        return user ? true : false
+        // COntrol for when the token is not in the db
+
+        return tokenBlacklisted
     }
 }

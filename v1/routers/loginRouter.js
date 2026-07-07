@@ -22,7 +22,8 @@ router.post("/", async (req, res) => {
 
         const payload = {
             userId: user.userId,
-            email: user.email
+            email: user.email,
+            role:  user.role
         }
 
         bcrypt.compare(password, user.passwordHash, async function(err, result) {

@@ -38,6 +38,7 @@ middlewares
 
 index.js
 knexfile.js
+commitlint.config.js
 package.json
 README.md
 ```
@@ -53,11 +54,13 @@ README.md
 7.  nodemailer: send mail from code
 8.  nodemon: dev dependency to restart server automatically on changes
 9.  pg: interact with postgres db
+10. commitlint/cli: commit rules enforcing
+11. joi - data validation
 
 ## **Middlewares**
 
-1.  Version middlware:  looks for version header and direct to appropriate server
-2.  Token middlware: check for the token header in every request, checks validity and whether it is blacklisted before forwarding to the nect router
+1.  Version middlware:  looks for version header and direct to appropriate server. Found in ./middlewares/version.js
+2.  Token middlware: check for the token header in every request, checks validity and whether it is blacklisted before forwarding to the nect router. Found in the version folder  eg v1/middlewares/token.js
 
 # **Login**
 
@@ -78,13 +81,13 @@ const payload = {
 const user = await Users.getSingleUserByEmail(email)
 ```
 
-1.  If the user is in the database, check if the passwords match, if not send error message
+2.  If the user is in the database, check if the passwords match, if not send error message
 
 ```javascript
 bcrypt.compare(password, user.passwordHash, async function(err, result) {})
 ```
 
-1.  If the passwords match, generate and send an access and refresh token to the user. Store refresh token in db.
+3.  If the passwords match, generate and send an access and refresh token to the user. Store refresh token in db.
 
 ```javascript
 const {token, refreshToken} = generateJwtToken(payload, "all")
@@ -92,7 +95,7 @@ const {token, refreshToken} = generateJwtToken(payload, "all")
 
 # **Logout**
 
-**Endpoint:** baseUrl/forgot-password
+**Endpoint:** baseUrl/logout
 
 ```javascript
 const payload = {
@@ -139,13 +142,13 @@ const payload = {
 const user = await Users.getSingleUserByEmail(email)
 ```
 
-1.  If the email exists, generate a forgot password token to be used during password reset
+2.  If the email exists, generate a forgot password token to be used during password reset
 
 ```javascript
 const {forgotPasswordToken} = generateJwtToken(payload, "forgotPassword") 
 ```
 
-1.  After generating the forgot password token, send to the user's email. 
+3.  After generating the forgot password token, send to the user's email. This token will be provided when resetting the user's email.
 
 ```javascript
 const sendRes = await sendPasswordResetMail({
@@ -173,13 +176,13 @@ const payload = {
 jwt.verify(resetToken, process.env.FORGOT_PASSWORD_TOKEN_SECRET, async (err, user) => {})
 ```
 
-1.  If the token is valid, hash the password passed in the request body
+2.  If the token is valid, hash the password passed in the request body
 
 ```javascript
 const hashedPassword = await hashPassword(req.body.password);
 ```
 
-1.  Update the hashed password in the database
+3.  Update the hashed password in the database
 
 ```javascript
 const updateRes = await Users.updateUserPassword(userObj)
@@ -203,13 +206,13 @@ const payload = {
 const {refreshToken} = await Tokens.getRefreshToken(inputRefreshToken)
 ```
 
-1.  Verify the refresh token
+2.  Verify the refresh token
 
 ```javascript
 jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {})
 ```
 
-1.  If the token is valid, generate a new access token and send to the user
+3.  If the token is valid, generate a new access token and send to the user
 
 ```javascript
 const {token} = generateJwtToken(payload, "token")  

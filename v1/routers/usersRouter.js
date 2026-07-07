@@ -2,9 +2,21 @@ import express from "express";
 const router = express.Router();
 import {Users} from "../database/utils/database.js";
 import hashPassword from "../utils/hashPassword.js";
+import { createUserSchema } from "../utils/validation.js";
 
 router.get("/", async (req, res) => {
+    const user = req.user
     const {type} = req.body
+
+    if (user.role != admin){
+        res.status(401).json(
+            { 
+                status: "error", 
+                data: null,
+                message: "You are not authorized to access this resource" 
+            }
+        );
+    }
 
     switch (type){
         case "multiple":
@@ -84,8 +96,23 @@ router.post("/", async (req, res) => {
         username: req.body.username,
         role: req.body.role
     }
+
+    const { error, value } = createUserSchema.validate(userObj, { abortEarly: false });
+
+    if (error) {
+        const errorMessages = error.details.map(detail => detail.message);
+        
+        return res.status(400).json({
+            status: "error",
+            data: { 
+                errors: errorMessages 
+            },
+            message: "User created successfully"
+        });
+    }
+
     try {
-        const response = await Users.createUser(userObj);
+        const response = await Users.createUser(value);
 
         res.status(200).json({
             status: "success",

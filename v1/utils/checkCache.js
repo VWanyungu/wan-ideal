@@ -3,6 +3,7 @@ import {Tokens} from "../database/utils/database.js";
 
 export async function isTokenBlacklisted(token){
     const blacklisted = await Cache.get(`blacklist_${token}`)
+    
     if (blacklisted != null){
         return blacklisted
     }
