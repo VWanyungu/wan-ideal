@@ -2,42 +2,49 @@
 
 ## **Project structure**
 
-```javascript
+```typescript
 v1
 	---database
 		---utils
-		cacheSetup.js
-		dbSetup.js
+		cacheSetup.ts
+		dbSetup.ts
 		
 	---middlewares
-		token.js
+		token.ts
+		authorize.ts
 		
 	---migrations
 
 	---routers
-		forgotPasswordRouter.js
-		loginRouter.js
-		logoutRouter.js
-		refreshTokenRouter.js
-		resetUserPasswordRouter.js
-		signUpRouter.js
-		usersRouter.js
+		forgotPasswordRouter.ts
+		loginRouter.ts
+		logoutRouter.ts
+		refreshTokenRouter.ts
+		resetUserPasswordRouter.ts
+		signUpRouter.ts
+		usersRouter.ts
+		rolesRouter.ts
+		accessRolesRouter.ts
 		
 	---seeds
 
 	---tests
 		
 	---utils
-		checkCache.js
-		generateJwtToken.js
-		hashPassword.js
-		sendMail.js
+		checkCache.ts
+		generateJwtToken.ts
+		hashPassword.ts
+		sendMail.ts
+		validation.ts
+		errors.ts
 	
 middlewares
-	version.js
+	version.ts
 
-index.js
-knexfile.js
+index.ts
+types.ts
+knexfile.ts
+tsconfig.json
 commitlint.config.js
 package.json
 README.md
@@ -49,18 +56,22 @@ README.md
 2.  bcrypt: hashing passwords
 3.  dotenv: hide sensitive data
 4.  express: node backend framework
-5.  jsonwebtoken: creating and using token to pass information between front and backend
-6.  knex: query builder to track db migrations
-7.  nodemailer: send mail from code
-8.  nodemon: dev dependency to restart server automatically on changes
-9.  pg: interact with postgres db
-10. commitlint/cli: commit rules enforcing
-11. joi - data validation
+5.  helmet: security headers
+6.  cors: cross-origin request handling
+7.  morgan: request logging
+8.  jsonwebtoken: creating and using token to pass information between front and backend
+9.  knex: query builder to track db migrations
+10. nodemailer: send mail from code
+11. pg: interact with postgres db
+12. commitlint/cli: commit rules enforcing
+13. joi - data validation
+14. typescript: static typing, run via Bun
 
 ## **Middlewares**
 
-1.  Version middlware:  looks for version header and direct to appropriate server. Found in ./middlewares/version.js
-2.  Token middlware: check for the token header in every request, checks validity and whether it is blacklisted before forwarding to the nect router. Found in the version folder  eg v1/middlewares/token.js
+1.  Version middlware:  looks for version header and direct to appropriate server. Found in ./middlewares/version.ts
+2.  Token middlware: check for the token header in every request, checks validity, whether it is blacklisted, and whether the session was invalidated before forwarding to the next router. Found in v1/middlewares/token.ts
+3.  Authorize middleware: checks the caller's granted global roles (see "Access control" in STRUCTURE.md) against the roles a route requires. Found in v1/middlewares/authorize.ts
 
 # **Login**
 
@@ -148,7 +159,7 @@ const user = await Users.getSingleUserByEmail(email)
 const {forgotPasswordToken} = generateJwtToken(payload, "forgotPassword") 
 ```
 
-3.  After generating the forgot password token, send to the user's email. This token will be provided when resetting the user's email.
+3.  After generating the forgot password token, send to the user's email. This token will be provided when resetting the user's email.
 
 ```javascript
 const sendRes = await sendPasswordResetMail({
@@ -190,7 +201,7 @@ const updateRes = await Users.updateUserPassword(userObj)
 
 # **Refresh access token**
 
-**Endpoint:** baseUrl/token
+**Endpoint**: baseUrl/token
 
 ```javascript
 const payload = {

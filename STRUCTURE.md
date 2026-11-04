@@ -19,11 +19,15 @@
 
 6. Authentication
  - tokens created on login, deleted on logout, refresh token stored in db
+ - admin can force a re-login by invalidating a user's sessions (tokens_invalidated_at)
 
 7. Access control
-- set user from toke, check role
+- user's global role grants loaded from the `roles` table onto the JWT at login/refresh
+- `authorize([roleNames])` middleware checks the caller's grants against a route's required roles; `Admin` bypasses all checks
+- grantable role names live in the `access_role` catalog table, managed via /access-roles
 
-8. Validation X
+8. Validation
+- Joi schemas in v1/utils/validation.ts
 
 9. Hashing
 - bcrypt
